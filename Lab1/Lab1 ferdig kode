@@ -12,9 +12,7 @@
 #define BAUD 9600
 #define MYUBRR FOSC/16/BAUD-1
 
-
-
-int UART_Transmit(char data, FILE * file )
+int uart_Transmit(char data, FILE * file )
 {
 	/* Wait for empty transmit buffer */
 	while ( !( UCSR0A & (1<<UDRE0)) );
@@ -22,7 +20,7 @@ int UART_Transmit(char data, FILE * file )
 	UDR0 = data;
 	return 0;
 }
-int UART_Receive(FILE * file)
+int uart_Receive(FILE * file)
 {
 	/* Wait for data to be received */
 	while ( !(UCSR0A & (1<<RXC0)) )
@@ -41,16 +39,42 @@ void UART_Init( unsigned int ubrr )
 	/* Set frame format: 8data, 2stop bit */
 	UCSR0C = (1<<URSEL0)|(1<<USBS0)|(3<<UCSZ00);
 	
-	fdevopen(UART_Transmit, UART_Receive);
+		fdevopen(uart_Transmit, uart_Receive);
 }
-
+void UART_Transmit( unsigned char data )
+{
+	/* Wait for empty transmit buffer */
+	while ( !( UCSR0A & (1<<UDRE0)) )
+	;
+	/* Put data into buffer, sends the data */
+	UDR0 = data;
+}
+unsigned char UART_Receive( void )
+{
+	/* Wait for data to be received */
+	while ( !(UCSR0A & (1<<RXC0)) )
+	;
+	/* Get and return received data from buffer */
+	return UDR0;
+}
 int main() {
 	UART_Init(MYUBRR);
 	
-	for(int i = 0; i<11; i++){
-		printf("%d",i);
-		if(i==10){
-			printf("Funker bra");
-		}
+	while (1) {
+		
+		//UART_Transmit('k');
+		// Sending a string
+		/*const char *message = "Seier!\n";
+		UART_TransmitString(message);*/
+		/*for(int i = 0; i<11; i++){
+			printf("%d",i);
+			if(i==10){
+				printf("Funker bra");
+			}
+		}	*/
+
+		// Receiving data
+		char receivedChar = UART_Receive();
+		printf("%c",receivedChar); // Echo received character
 	}
 }
