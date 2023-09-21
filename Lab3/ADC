@@ -13,6 +13,9 @@
 #define BAUD 9600
 #define MYUBRR FOSC/16/BAUD-1
 #include "uart.h"
+#include "joysticking.h"
+
+#define deadzone 0x08
 
 
 
@@ -104,30 +107,6 @@ uint8_t adc_read(uint8_t channel){
 	return data;
 }
 
-uint8_t map(uint8_t x, uint8_t in_min, uint8_t in_max, uint8_t out_min, uint8_t out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
-/*uint8_t joystick(){
-	uint8_t x_axis = 0x81;
-	uint8_t y_axis = 0x80;
-	volatile char *adc = (char *) 0x1400;
-		
-	adc[0] = x_axis;
-	_delay_ms(2);
-	uint8_t value_x = adc[0];
-	adc[0] = y_axis;
-	_delay_ms(2);
-	uint8_t value_y = adc[0];
-	
-	struct joystick_values{
-		uint8_t value_x;
-		uint8_t value_y;
-	};
-	
-	return joystick_values;
-}*/
-
 
 
 int main(void)
@@ -137,20 +116,16 @@ int main(void)
 	//SRAM_test();
 	pwm_init();
 	adc_init();
-	uint8_t x_axis = 0x81;
-	uint8_t y_axis = 0x80;
-	uint8_t right_slider = 0x83;
-	uint8_t left_slider = 0x82;
+	uint8_t cal[4];
+	calibrate(cal);
+	
 	DDRB &= ~_BV(PB0);
 	DDRB &= ~_BV(PB1);
 	
-	/*volatile char *adc = (char *) 0x1400;
-	adc[0] = y_axis;
-	_delay_ms(20);
-		
-	uint8_t val_y = adc[0];
-	uint8_t deadzone_y_min = val_y -0x08;
-	uint8_t deadzone_y_max = val_y +0x08;*/
+	uint8_t joyarr[2];
+	uint8_t slidarr[2];	
+	
+	char dir;
 
 	
 	printf("Initialized \r\n");
@@ -164,24 +139,28 @@ int main(void)
 			printf("VENSTRE KNAPP TRYKKET\r\n");
 		}
 		
-		volatile char *adc = (char *) 0x1400;
-		adc[0] = 0x83;
-		_delay_ms(20);
-		
-		uint8_t value = adc[0];
-		//value = 0x9D;
-		//value = map(value,0x00, 0xff, 0x00,0x05);
-		/*if (value >= deadzone_y_max)
-		{
-			printf("UP\r\n");
-		}
-		if (value <= deadzone_y_min)
-		{
-			printf("DOWN\r\n");
-		}*/
-		printf("ADC value: %d\r\n", value);
-		
+		joysticks(joyarr);
+		direction(cal);
 		_delay_ms(200);
+		
+		
+		/*printf("\n\r X_AXIS:");
+		joysticks(joyarr);
+		printf("%d", joyarr[0]);
+		printf("%% - - Y_AXIS:");
+		joysticks(joyarr);
+		printf("%d", joyarr[1]);
+		printf("%% \r\n");
+		*/
+		printf("\n\r RIGHT SLIDER:");
+		sliders(slidarr);
+		printf("%d", slidarr[0]);
+		printf(" - - LEFT SLIDER:");
+		sliders(slidarr);
+		printf("%d", slidarr[1]);
+		printf("\r\n");
+		
+		_delay_ms(1000);
 	}
 	
 }
