@@ -12,52 +12,9 @@
 #define FOSC 4915200// Clock Speed
 #define BAUD 9600
 #define MYUBRR FOSC/16/BAUD-1
+#include "uart.h"
 
-int uart_Transmit(char data, FILE * file )
-{
-	/* Wait for empty transmit buffer */
-	while ( !( UCSR0A & (1<<UDRE0)) );
-	/* Put data into buffer, sends the data */
-	UDR0 = data;
-	return 0;
-}
-int uart_Receive(FILE * file)
-{
-	/* Wait for data to be received */
-	while ( !(UCSR0A & (1<<RXC0)) )
-	;
-	/* Get and return received data from buffer */
-	return UDR0;
-}
 
-void UART_Init( unsigned int ubrr )
-{
-	/* Set baud rate */
-	UBRR0H = (unsigned char)(ubrr>>8);
-	UBRR0L = (unsigned char)ubrr;
-	/* Enable receiver and transmitter */
-	UCSR0B = (1<<RXEN0)|(1<<TXEN0);
-	/* Set frame format: 8data, 2stop bit */
-	UCSR0C = (1<<URSEL0)|(1<<USBS0)|(3<<UCSZ00);
-	
-	fdevopen(uart_Transmit, uart_Receive);
-}
-void UART_Transmit( unsigned char data )
-{
-	/* Wait for empty transmit buffer */
-	while ( !( UCSR0A & (1<<UDRE0)) )
-	;
-	/* Put data into buffer, sends the data */
-	UDR0 = data;
-}
-unsigned char UART_Receive( void )
-{
-	/* Wait for data to be received */
-	while ( !(UCSR0A & (1<<RXC0)) )
-	;
-	/* Get and return received data from buffer */
-	return UDR0;
-}
 
 void SRAM_init(){
 	MCUCR = (1 << SRE);
@@ -101,7 +58,7 @@ void SRAM_test(void)
 
 void adc_init() {
 	MCUCR = (1 << SRE); // Enable SRAM i ATmega162
-	SFIOR = (1 << XMM2); // Maskerer PC4-PC7 på ATmega162. Dvs passer på at vi ikke kuker med JTAG-pinnene. Sjekk "Table 4", side 32 i ATmega162-databladet.
+	SFIOR = (1 << XMM2); // Maskerer PC4-PC7 på ATmega162. 
 }
 
 
@@ -147,6 +104,30 @@ uint8_t adc_read(uint8_t channel){
 	return data;
 }
 
+uint8_t map(uint8_t x, uint8_t in_min, uint8_t in_max, uint8_t out_min, uint8_t out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+/*uint8_t joystick(){
+	uint8_t x_axis = 0x81;
+	uint8_t y_axis = 0x80;
+	volatile char *adc = (char *) 0x1400;
+		
+	adc[0] = x_axis;
+	_delay_ms(2);
+	uint8_t value_x = adc[0];
+	adc[0] = y_axis;
+	_delay_ms(2);
+	uint8_t value_y = adc[0];
+	
+	struct joystick_values{
+		uint8_t value_x;
+		uint8_t value_y;
+	};
+	
+	return joystick_values;
+}*/
+
 
 
 int main(void)
@@ -156,12 +137,51 @@ int main(void)
 	//SRAM_test();
 	pwm_init();
 	adc_init();
+	uint8_t x_axis = 0x81;
+	uint8_t y_axis = 0x80;
+	uint8_t right_slider = 0x83;
+	uint8_t left_slider = 0x82;
+	DDRB &= ~_BV(PB0);
+	DDRB &= ~_BV(PB1);
+	
+	/*volatile char *adc = (char *) 0x1400;
+	adc[0] = y_axis;
+	_delay_ms(20);
+		
+	uint8_t val_y = adc[0];
+	uint8_t deadzone_y_min = val_y -0x08;
+	uint8_t deadzone_y_max = val_y +0x08;*/
+
+	
+	printf("Initialized \r\n");
 	
 	while(1){
-		uint8_t adc_output = adc_read(4);
-		/* Replace with your application code */
-		printf("%" PRIu8 "\n", adc_output);
-		_delay_ms(100);
+		
+		if(bit_is_set(PINB, PB0)){
+			printf("RIGHT KNAPP TRYKKET\r\n");
+		}
+		if(bit_is_set(PINB, PB1)){
+			printf("VENSTRE KNAPP TRYKKET\r\n");
+		}
+		
+		volatile char *adc = (char *) 0x1400;
+		adc[0] = 0x83;
+		_delay_ms(20);
+		
+		uint8_t value = adc[0];
+		//value = 0x9D;
+		//value = map(value,0x00, 0xff, 0x00,0x05);
+		/*if (value >= deadzone_y_max)
+		{
+			printf("UP\r\n");
+		}
+		if (value <= deadzone_y_min)
+		{
+			printf("DOWN\r\n");
+		}*/
+		printf("ADC value: %d\r\n", value);
+		
+		_delay_ms(200);
 	}
-    
+	
 }
