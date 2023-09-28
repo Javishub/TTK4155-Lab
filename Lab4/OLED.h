@@ -13,6 +13,7 @@
 #define BAUD 9600
 #define MYUBRR FOSC/16/BAUD-1
 
+
 void oled_init() {
 	oled_write_command(0xae); // display off
 	oled_write_command(0xa1); //segment remap
@@ -48,10 +49,53 @@ void oled_write_data(uint8_t data) {
 	ext_oled_data[0] = data;
 }
 
+void oled_reset(){
+	oled_write_command(0x21);
+	oled_write_command(0);
+	oled_write_command(127);
+	for (int line = 0; line < 8; line++) {
+		oled_goto_line(line);
+		oled_goto_column(0);
+		for (int i = 0; i < 128; i++) {
+			oled_write_data(0x0);
+		}
+	}
+	oled_pos(0,0);
+}
+
+void oled_clear_line(int line){
+		oled_goto_line(line);
+		oled_goto_column(0);
+		for (int i = 0; i < 128; i++) {
+			oled_write_data(0x0);
+		}
+}
+
+void oled_home(){
+	oled_pos(0,0);
+}
+
+void oled_brightness (int br){
+	br = ((br - 0) * (255 - 0) / (100 - 0) + 255);
+	oled_write_command(0x81);
+	oled_write_command(br);
+}
+
+
+void oled_pos(int line, int column){
+	oled_goto_line(line);
+	oled_goto_column(column);
+}
+
 void oled_goto_column(int column) {
-  oled_write_command(0x00 + (column % 16)); // Lower nibble
-  oled_write_command(0x10 + (column / 16)); // Higher nibble
+	oled_write_command(0x21);
+	oled_write_command(column);
+	oled_write_command(127);
+	
 }
 void oled_goto_line(int line) {
   oled_write_command(0xB0 + line);
 }
+
+
+
