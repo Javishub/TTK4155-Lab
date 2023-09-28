@@ -72,30 +72,38 @@ void calibrate(uint8_t arr_val[]){
 }
 
 
-void direction(uint8_t vals[4]){
+int direction(uint8_t vals[4]){
 	uint8_t joyarr[2];
+	int direx;
 	joysticks(joyarr);
-		if (joyarr[0] > vals[0] && joyarr[0] < vals[1] && joyarr[1] > vals[2] && joyarr[1] < vals[3])
+	if (joyarr[0] > vals[0] && joyarr[0] < vals[1] && joyarr[1] > vals[2] && joyarr[1] < vals[3])
 	{	
 		printf("NETURAL\r\n");
+		direx = 0;
 	}
 	 if (joyarr[0] >= vals[1])
 	 {
 		printf("RIGHT\r\n");
+		direx = 1;
 	 }
 	 if (joyarr[0] <= vals[0])
 	 {
 		 printf("LEFT\r\n");
+		direx = 2;
+
 	 }
 	  if (joyarr[1] >= vals[3])
 	 {
 		printf("UP\r\n");
-	 }
+		direx = 3;
+			 }
 	 if (joyarr[1] <= vals[2])
 	 {
-		 printf("DOWN\r\n");
+		printf("DOWN\r\n");
+		direx = 4;
+
 	 }
 	 
 	 
-	return;
+	return direx;
 }
