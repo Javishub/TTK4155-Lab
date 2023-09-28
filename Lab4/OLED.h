@@ -40,3 +40,8 @@ for (int line = 0; line < 8; line++) {
 		oled_write_data(0x00);
 	}
 }
+
+void oled_goto_column(int column) {
+  oled_write_command(0x00 + (column % 16)); // Lower nibble
+  oled_write_command(0x10 + (column / 16)); // Higher nibble
+}
