@@ -121,7 +121,9 @@ int main(void)
 	uint8_t cal[4];
 	calibrate(cal);
 	oled_write_command(0x20);
-	oled_write_command(0b10);
+	oled_write_command(0b00);
+	oled_reset();
+	oled_brightness(100); //Brightness of display from 0-100%
 	
 	DDRB &= ~_BV(PB0);
 	DDRB &= ~_BV(PB1);
@@ -130,23 +132,81 @@ int main(void)
 	uint8_t slidarr[2];	
 	
 	char dir;
-
+	
+	_delay_ms(400);
 	
 	printf("Initialized \r\n");
 	
-	while (1)
-	{
 	
 	for (int line = 0; line < 8; line++) {
 		oled_goto_line(line);
-		oled_goto_column(4);
+		oled_goto_column(0);
 		for (int i = 0; i < 128; i++) {
-			oled_write_data(0x01);
-			printf("DataWritten");
-			}
+			oled_write_data(0xFF);
+		}
 	}
+	
+	
+	
+	while (1)
+	{
+		
+		joysticks(joyarr);
+		direction(cal);
+		
+		
+		printf("\n\r X_AXIS:");
+		joysticks(joyarr);
+		printf("%d", joyarr[0]);
+		printf("%% - - Y_AXIS:");
+		joysticks(joyarr);
+		printf("%d", joyarr[1]);
+		printf("%% \r\n");
+		
+		int direx = direction(cal);
+		for (int line = 0; line < 8; line++) {
+		oled_goto_line(line);
+		oled_goto_column(8);
+		for (int i = 0; i < 128; i++) {
+			oled_write_data(0xFF);
+		}
 	}
-	while(1){
+		
+		if (direx == 1){
+			oled_pos(4,60);
+			oled_write_data (~0b00011000 );
+			oled_write_data (~0b00011000 );
+			oled_write_data (~0b01111110 );
+			oled_write_data (~0b00111100 );
+			oled_write_data (~0b00011000 );
+		}
+		if (direx == 2)
+		{
+		
+		oled_pos(4,60);
+		oled_write_data (~0b00011000 );
+		oled_write_data (~0b00111100 );
+		oled_write_data (~0b01111110 );
+		oled_write_data (~0b00011000 );
+		oled_write_data (~0b00011000 );
+	}
+	
+	
+
+	
+	}	
+	/*
+	for (int line = 0; line < 8; line++) {
+		oled_goto_line(line);
+		oled_goto_column(8);
+		for (int i = 0; i < 128; i++) {
+			oled_write_data(0xFF);
+			_delay_ms(2);
+		}
+	}
+	
+	oled_clear_line(3);*/
+	/*while(1){
 		
 		if(bit_is_set(PINB, PB0)){
 			printf("RIGHT KNAPP TRYKKET\r\n");
@@ -167,7 +227,7 @@ int main(void)
 		joysticks(joyarr);
 		printf("%d", joyarr[1]);
 		printf("%% \r\n");
-		*/
+		
 		printf("\n\r RIGHT SLIDER:");
 		sliders(slidarr);
 		printf("%d", slidarr[0]);
@@ -177,6 +237,6 @@ int main(void)
 		printf("\r\n");
 		
 		_delay_ms(1000);
-	}
+	}*/
 	
 }
