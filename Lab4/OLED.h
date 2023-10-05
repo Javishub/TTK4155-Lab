@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #define F_CPU 4915200// Clock Speed
 #include <util/delay.h>
+#include "fonts.h"
 
 
 #define BASE_ADDRESS_ADC 0x1400
@@ -95,6 +96,42 @@ void oled_goto_column(int column) {
 }
 void oled_goto_line(int line) {
   oled_write_command(0xB0 + line);
+}
+
+void oled_print2(char symbol){
+	
+}
+void oled_print_char(int symbol){
+	symbol = symbol-32;
+	for(int i=0; i < 5; i++){
+		int byte = pgm_read_byte(&font5[symbol][i]);
+		oled_write_data(byte);
+			
+	}
+	/*else if(char == 5){
+	for(int i=0; i < char; i++){
+		int byte = pgm_read_byte(&font5[symbol][i])
+		oled_write_data(byte);
+		
+	}else if(char == 4){
+	for(i=0; i < char; i++){
+		int byte = pgm_read_byte(&font4[symbol][i])
+		oled_write_data(byte);
+	}*/
+}
+
+void oled_print(char c[]){
+	for(int i=0; i<strlen(c);i++){
+		oled_print_char(c[i]);
+	}
+}
+
+void oled_arrow(){
+	oled_write_data (0b00011000 );
+	oled_write_data (0b00011000 );
+	oled_write_data (0b01111110 );
+	oled_write_data (0b00111100 );
+	oled_write_data (0b00011000 );
 }
 
 
