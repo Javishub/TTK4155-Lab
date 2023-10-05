@@ -14,6 +14,8 @@
 #define MYUBRR FOSC/16/BAUD-1
 #define deadzone 0x08
 
+typedef enum {up,down,neutral,right,left} directions_t;
+
 
 uint8_t map(uint8_t x, uint8_t in_min, uint8_t in_max, uint8_t out_min, uint8_t out_max) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -74,36 +76,36 @@ void calibrate(uint8_t arr_val[]){
 
 int direction(uint8_t vals[4]){
 	uint8_t joyarr[2];
-	int direx;
+	directions_t dir;
 	joysticks(joyarr);
 	if (joyarr[0] > vals[0] && joyarr[0] < vals[1] && joyarr[1] > vals[2] && joyarr[1] < vals[3])
 	{	
-		printf("NETURAL\r\n");
-		direx = 0;
+		//printf("NETURAL\r\n");
+		dir = neutral;
 	}
 	 if (joyarr[0] >= vals[1])
 	 {
-		printf("RIGHT\r\n");
-		direx = 1;
+		//printf("RIGHT\r\n");
+		dir = right;
 	 }
 	 if (joyarr[0] <= vals[0])
 	 {
-		 printf("LEFT\r\n");
-		direx = 2;
+		//printf("LEFT\r\n");
+		dir = left;
 
 	 }
 	  if (joyarr[1] >= vals[3])
 	 {
-		printf("UP\r\n");
-		direx = 3;
+		//printf("UP\r\n");
+		dir = up;
 			 }
 	 if (joyarr[1] <= vals[2])
 	 {
-		printf("DOWN\r\n");
-		direx = 4;
+		//printf("DOWN\r\n");
+		dir = down;
 
 	 }
 	 
 	 
-	return direx;
+	return dir;
 }
