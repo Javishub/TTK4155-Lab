@@ -18,6 +18,8 @@
 #include "fonts.h"
 #include "menus.h"
 #include "SPI.h"
+#include "mcp2515.h"
+#include "CAN.h"
 
 #define deadzone 0x08
 
@@ -105,7 +107,7 @@ uint8_t adc_read(uint8_t channel){
 	_delay_ms(9*NUMBER_OF_CHANNELS*2 / F_CPU);
 
 	// read desired channel
-	uint8_t data;
+	uint8_t data = 0;
 
 	for (int i = 0; i <= channel; ++i) {
 		data = ext_mem[0];
@@ -124,7 +126,11 @@ int main(void)
 	pwm_init();
 	adc_init();
 	oled_init();
-	spi_master_init();
+	mcp_init();
+	mcp_set_mode(MODE_LOOPBACK);
+	printf("\r\nMODE: %x\r\n", mcp_read(MCP_CANSTAT));
+	
+	
 	uint8_t cal[4];
 	calibrate(cal);
 	oled_write_command(0x20);
@@ -140,12 +146,22 @@ int main(void)
 	uint8_t joyarr[2];
 	uint8_t slidarr[2];	
 	
+	message_t message = {
+		1,
+		8,
+		"0110"
+	};
 	
+	
+	_delay_ms(1000);
 	while(1){
 	_delay_ms(10);
-	spi_write('a');
-	uint8_t readeded = spi_read();
-	//printf("\r\n%x", readeded);
+	
+	can_send(&message);
+	message_t receive = can_receive();
+	printf("ID: %d\r\n", receive.id);
+	printf("Lengde: %d\r\n", receive.length);
+	printf("Melding: %s\r\n", receive.data);
 	}
 	
 	
@@ -369,7 +385,7 @@ int main(void)
 
 	
 	}	
-	/*
+	
 	for (int line = 0; line < 8; line++) {
 		oled_goto_line(line);
 		oled_goto_column(8);
@@ -379,8 +395,8 @@ int main(void)
 		}
 	}
 	
-	oled_clear_line(3);*/
-	/*while(1){
+	oled_clear_line(3);
+	while(1){
 		
 		if(bit_is_set(PINB, PB0)){
 			printf("RIGHT KNAPP TRYKKET\r\n");
@@ -394,7 +410,7 @@ int main(void)
 		_delay_ms(200);
 		
 		
-		/*printf("\n\r X_AXIS:");
+		printf("\n\r X_AXIS:");
 		joysticks(joyarr);
 		printf("%d", joyarr[0]);
 		printf("%% - - Y_AXIS:");
