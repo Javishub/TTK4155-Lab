@@ -1,0 +1,12 @@
+
+void delay_ms(uint32_t milliseconds) {
+	uint32_t delay = milliseconds * (SystemCoreClock / 1000);
+	
+	// Initialize and configure a timer
+	TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1; // channel mode, choose time clock 1
+	TC0->TC_CHANNEL[0].TC_RC = delay;  // Register c
+	TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG; // Control register, enable clock and add trigger command 
+	
+	// Wait for the timer to complete
+	while ((TC0->TC_CHANNEL[0].TC_SR & TC_SR_CPCS) == 0);
+}
