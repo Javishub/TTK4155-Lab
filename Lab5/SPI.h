@@ -1,4 +1,5 @@
 
+#include "mcp2515.h"
 #define DDR_SPI DDRB
 #define DD_SS PB4
 #define DD_MOSI PB5
@@ -16,7 +17,7 @@ void spi_clear_ss(){
 void spi_master_init(){
 	DDR_SPI = (1 << DD_MOSI)|(1 << DD_SCK)|(1 << DD_SS);
 	SPCR = (1 << SPE)|(1 << MSTR)|(1 << SPR0)|(1 << SPIE);
-	//spi_set_ss();
+	spi_set_ss();
 }
 
 void spi_write(char cData){
@@ -70,4 +71,39 @@ void mcp_bit_modify(uint8_t address, uint8_t mask, uint8_t data) {
 	spi_write(mask); //Maskeringsbyte, se forklaring nedenfor
 	spi_write(data); //Verdiene som biten(e) skal endres til
 	spi_set_ss();
+}
+
+void mcp_init(){
+	spi_master_init();
+	mcp_reset();
+	
+	_delay_ms(1);
+	
+	uint8_t value = mcp_read(MCP_CANSTAT);
+	if ((value & MODE_MASK) != MODE_CONFIG)
+	{
+		printf("MCP2515 isn't in config mode after reset. CANSTAT: %x\r\n", value);
+	}
+}
+
+void mcp_request_to_send(int bfr_nr){
+	spi_clear_ss();
+	bfr_nr = bfr_nr%3;
+	char data = MCP_RTS_TX0;
+	if (bfr_nr == 0)
+	{
+		data = MCP_RTS_TX0;
+	}else if (bfr_nr == 1)
+	{
+		data = MCP_RTS_TX1;
+	}else if (bfr_nr == 2)
+	{
+		data = MCP_RTS_TX2;
+	}
+	spi_write(data);
+	spi_set_ss();
+}
+
+void mcp_set_mode(uint8_t mode){
+	mcp_bit_modify(MCP_CANCTRL, 0b11100000, mode);
 }
