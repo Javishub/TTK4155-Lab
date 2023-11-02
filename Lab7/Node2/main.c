@@ -15,6 +15,8 @@
 #include "uart.h"
 #include "printf-stdarg.h"
 #include "can_controller.h"
+#include "pwm.h"
+#include "ADC.h"
 //#include "CAN_BAUD_CONF.h"
 // can_binary_ting			0000000 1 0 0010101 00 11 0 010 0 110 0 111
 // can_binary_ting_minus_en 0000000 1 0 0010100 00 11 0 001 0 101 0 110
@@ -49,13 +51,15 @@ int main(void)
 	WDT->WDT_MR = WDT_MR_WDDIS;        // Disable Watchdog Timer
 	PMC->PMC_WPMR &= ~(PMC_WPMR_WPEN); // PMC enable
 	configure_uart();
-	
+	pwm_init();
+	adc_init();
 	
 	//uint8_t BRP = MCP_CPU / (2*NUMBER_OF_TQ*BAUDRATE)
 	//printf("DETTE ER VAAR HEX %x\r\n", hexer());
 	
 	can_init_def_tx_rx_mb(hexer());
 
+	int score = 0;
 
 
 
@@ -65,6 +69,17 @@ int main(void)
     /* Replace with your application code */
     while (1) 
     {
+		int ir_level = adc_read();
+	    if (ir_level < 1700)
+	    {
+			score++;
+	    }
+		else{}
+		if (score > 1000)
+		{
+			printf("You won!\n\r");
+			score = 0;
+		}
 			
     }
 }

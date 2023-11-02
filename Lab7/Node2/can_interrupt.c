@@ -70,6 +70,7 @@ void CAN0_Handler( void )
 			switch(message.data[0]){
 				case 0:
 				printf("NEUTRAL\n\r");
+				pwm_set_dutycycle(1.5);
 				break;
 				case 1:
 				printf("DOWN\n\r");
@@ -79,9 +80,11 @@ void CAN0_Handler( void )
 				break;
 				case 3:
 				printf("LEFT\n\r");
+				pwm_set_dutycycle(2.1);
 				break;
 				case 4:
 				printf("RIGHT\n\r");
+				pwm_set_dutycycle(0.9);
 				break;
 				default:
 				break;
